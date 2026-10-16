@@ -28,6 +28,9 @@ jobs:
       - name: Check Flutter Version
         run: flutter --version
 
+      - name: Generate Android Project Structure
+        run: flutter create . --platforms=android --project-name sera_app --overwrite
+
       - name: Get Dependencies
         run: flutter pub get
 
