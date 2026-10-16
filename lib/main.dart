@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(Widget context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Sera AI Assistant',
