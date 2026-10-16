@@ -4,7 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await [Permission.microphone, Permission.camera].request();
+  await Permission.microphone.request();
   runApp(const MyApp());
 }
 
@@ -16,14 +16,21 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Sera AI Assistant',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const SeraWebViewPage(),
+      theme: ThemeData.dark(),
+      home: const WebViewScreen(),
     );
   }
 }
 
-class SeraWebViewPage extends StatefulWidget {
-  const SeraWebViewPage({super.key});
+class WebViewScreen extends StatefulWidget {
+  const WebViewScreen({super.key});
+
+  @override
+  State<WebViewScreen> createState() => _WebViewScreenState();
+}
+
+class _WebViewScreenState extends State<WebViewScreen> {
+  InAppWebViewController? webViewController;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +38,7 @@ class SeraWebViewPage extends StatefulWidget {
       body: SafeArea(
         child: InAppWebView(
           initialUrlRequest: URLRequest(
-            url: WebUri('https://sera-cloud-5ivn.onrender.com'),
+            url: WebUri("https://sera-cloud-5ivn.onrender.com"),
           ),
           initialSettings: InAppWebViewSettings(
             javaScriptEnabled: true,
@@ -41,7 +48,7 @@ class SeraWebViewPage extends StatefulWidget {
           onPermissionRequest: (controller, request) async {
             return PermissionResponse(
               resources: request.resources,
-              action: PermissionResponseAction.GRANT,
+              action: PermissionRequestResponseAction.GRANT,
             );
           },
         ),
