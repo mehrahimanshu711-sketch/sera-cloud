@@ -29,6 +29,11 @@ jobs:
         run: |
           flutter create . --platforms=android --project-name sera_cloud --overwrite
 
+      - name: Fix minSdkVersion for WebView
+        run: |
+          sed -i 's/minSdkVersion.*/minSdkVersion 21/g' android/app/build.gradle
+          sed -i 's/minSdk =.*/minSdk = 21/g' android/app/build.gradle || true
+
       - name: Inject pubspec.yaml with Dependencies
         run: |
           cat << 'EOF' > pubspec.yaml
