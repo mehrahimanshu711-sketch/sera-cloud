@@ -29,16 +29,19 @@ jobs:
         run: |
           flutter create . --platforms=android --project-name sera_cloud --overwrite
 
-      - name: Fix minSdkVersion for WebView
+      - name: Fix minSdkVersion and Permissions
         run: |
           sed -i 's/minSdkVersion.*/minSdkVersion 21/g' android/app/build.gradle
           sed -i 's/minSdk =.*/minSdk = 21/g' android/app/build.gradle || true
+          
+          # Add permissions to AndroidManifest.xml
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.WAKE_LOCK" />\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />' android/app/src/main/AndroidManifest.xml
 
-      - name: Inject pubspec.yaml with Dependencies
+      - name: Inject pubspec.yaml
         run: |
           cat << 'EOF' > pubspec.yaml
           name: sera_cloud
-          description: "Sera AI Assistant WebView App"
+          description: "Sera AI Hands-Free Assistant"
           publish_to: 'none'
           version: 1.0.0+1
 
@@ -50,26 +53,36 @@ jobs:
               sdk: flutter
             flutter_inappwebview: ^6.0.0
             permission_handler: ^11.3.0
+            wakelock_plus: ^1.2.8
 
           dev_dependencies:
             flutter_test:
               sdk: flutter
-            flutter_lints: ^3.0.0
 
           flutter:
             uses-material-design: true
           EOF
 
-      - name: Inject Custom WebView Code
+      - name: Inject Hands-Free Main.dart Code
         run: |
           cat << 'EOF' > lib/main.dart
           import 'package:flutter/material.dart';
           import 'package:flutter_inappwebview/flutter_inappwebview.dart';
           import 'package:permission_handler/permission_handler.dart';
+          import 'package:wakelock_plus/wakelock_plus.dart';
 
           void main() async {
             WidgetsFlutterBinding.ensureInitialized();
-            await Permission.microphone.request();
+            
+            // Request critical permissions
+            await [
+              Permission.microphone,
+              Permission.systemAlertWindow,
+            ].request();
+
+            // Enable WakeLock so phone CPU doesn't sleep in lock screen
+            WakelockPlus.enable();
+
             runApp(const MyApp());
           }
 
@@ -80,7 +93,7 @@ jobs:
             Widget build(BuildContext context) {
               return MaterialApp(
                 debugShowCheckedModeBanner: false,
-                title: 'Sera AI Assistant',
+                title: 'Sera AI',
                 theme: ThemeData.dark(),
                 home: const WebViewScreen(),
               );
@@ -109,6 +122,7 @@ jobs:
                       javaScriptEnabled: true,
                       mediaPlaybackRequiresUserGesture: false,
                       allowsInlineMediaPlayback: true,
+                      keepAliveEnabled: true,
                     ),
                     onPermissionRequest: (controller, request) async {
                       return PermissionResponse(
