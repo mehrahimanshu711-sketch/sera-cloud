@@ -33,17 +33,30 @@ HTML_TEMPLATE = """
     <h2 id="status">Tap karke kuch bole...</h2>
     <div id="output">Sera cloud par ready hai!</div>
 
-    <script>
+  <script>
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-IN';
+        recognition.continuous = true; // Continuous listening enable kiya
 
-        function startListening() {
-            document.getElementById("status").innerText = "Sera sun rahi hai...";
-            recognition.start();
-        }
+        // Page khulte hi mic auto-start ho jayega
+        window.onload = function() {
+            try {
+                document.getElementById("status").innerText = "Sera sun rahi hai (Active)...";
+                recognition.start();
+            } catch (e) {}
+        };
+
+        // Jab speech recognition apne aap ruke, toh yeh use turant wapas chalu kar dega
+        recognition.onend = function() {
+            try {
+                recognition.start();
+            } catch (e) {}
+        };
 
         recognition.onresult = async function(event) {
-            const text = event.results[0][0].transcript;
+            const current = event.resultIndex;
+            const text = event.results[current][0].transcript;
+            
             document.getElementById("status").innerText = "Aapne kaha: " + text;
             document.getElementById("output").innerText = "Soch rahi hoon...";
             
@@ -55,7 +68,7 @@ HTML_TEMPLATE = """
                 });
                 const data = await response.json();
                 document.getElementById("output").innerText = data.reply;
-                document.getElementById("status").innerText = "Tap karke dobara bole...";
+                document.getElementById("status").innerText = "Sera sun rahi hai...";
 
                 let speech = new SpeechSynthesisUtterance(data.reply);
                 speech.lang = 'hi-IN';
@@ -63,7 +76,7 @@ HTML_TEMPLATE = """
             } catch (err) {
                 document.getElementById("output").innerText = "Connection error ho gaya!";
             }
-        }
+        };
     </script>
 </body>
 </html>
